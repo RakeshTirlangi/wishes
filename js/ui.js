@@ -6,12 +6,6 @@ export const ui = {
   show(id) { $(id).classList.add('show'); },
   hide(id) { $(id).classList.remove('show'); },
 
-  subtitle(text) {
-    const box = $('subtitle'), span = box.querySelector('span');
-    if (!text) { box.classList.remove('show'); return; }
-    span.textContent = text; box.classList.add('show');
-  },
-
   /* Center text that fades in, holds, fades out. */
   async message(text, holdMs = 3200, id = 'message') {
     const el = $(id);

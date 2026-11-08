@@ -1,8 +1,8 @@
 # A Universe For You 🌙✨
 
-An interactive, cinematic 3D birthday experience. The moon tells a story, the birthday girl makes a wish and blows into her phone's microphone, the candles go out, the stars become her wishes and fly into a magical envelope, and the envelope is sent beyond the stars.
+An interactive, cinematic birthday experience under a moonlit night sky. The camera drifts from the Milky Way down to a full moon over a calm sea, follows the moonlight across the water to a birthday cake on a wooden pier, and waits. She makes a wish and blows into her phone's microphone, the candles go out, the stars become her wishes and fly into a glowing envelope, and the envelope rises past the moon into the sky. It ends with fireworks over the sea and the birthday message.
 
-Built as a static web app (no build step): vanilla ES modules + Three.js, Web Audio API for real breath detection, procedural music and sound effects, and the browser's speech synthesis for the moon's voice.
+Built as a static web app with no build step and no libraries. The whole world is drawn as SVG (generated in `js/scene.js`) and a camera animates the SVG viewBox. The Web Audio API handles real breath detection plus procedural music and sound effects. There is no voice narration.
 
 ## Run locally
 
@@ -15,7 +15,7 @@ python -m http.server 8787
 
 ## Story / scene states
 
-`INTRO → MOON_GREETING → CAKE_REVEAL → WISH_INVITATION → MICROPHONE_LISTENING → CANDLES_EXTINGUISHED → CELEBRATION → STARS_COLLECT_WISHES → ENVELOPE_SEALED → ENVELOPE_SENT → FINAL_MESSAGE → FINAL_BIRTHDAY_GREETING`
+`INTRO → MOON → CAKE_REVEAL → WISH_INVITATION → MICROPHONE_LISTENING → CANDLES_EXTINGUISHED → CELEBRATION → STARS_COLLECT_WISHES → ENVELOPE_SEALED → ENVELOPE_SENT → FINAL_BIRTHDAY_GREETING`
 
 Every transition is triggered by the previous narration, animation, or interaction finishing (see `js/director.js`).
 
@@ -44,18 +44,14 @@ Tune from the URL while testing, for example `?blow=0.06&hold=400&flat=0.2&mul=3
 | param | effect |
 |---|---|
 | `to=Name` | shows "For Name, who is very special" on the start screen |
-| `rate=0.9&pitch=1.1` | moon voice speed and pitch |
-| `fast=4` | speeds the whole story up (testing; voice is skipped) |
+| `fast=4` | speeds the whole story up (testing) |
 | `auto=1` | auto-taps the buttons (testing) |
 
 ## Files
 
-- `index.html`, `css/style.css` — overlay UI, subtitles, final greeting
-- `js/world.js` — renderer, sky shader, background stars, dust, lights, camera rig
-- `js/moon.js` — the moon character (canvas-drawn face on a sphere, blinking, looking, talking)
-- `js/stars.js` — hundreds of star characters (instanced billboard sprites), travel-to-envelope animation
-- `js/cake.js` — cake, candles, shader flames, smoke, sparkles, candlelight
-- `js/envelope.js` — envelope, flap, wax seal, beam, launch and vanish
-- `js/audio.js` — audio engine, procedural music, sound effects, narrator, blow detector
-- `js/director.js` — the scene state machine and camera direction
-- `js/sprites.js` — instanced sprite/particle engine and procedural textures
+- `index.html`, `css/style.css`: overlay UI, captions, final greeting, and the CSS that animates twinkling stars, waves, moonlight glints and the lighthouse
+- `js/scene.js`: the SVG world (sky gradient, painted Milky Way, stars, moon, clouds, island and lighthouse, sea, pier, cake with candle flames and smoke, envelope, shooting stars, fireworks) and the viewBox camera
+- `js/director.js`: the scene state machine and camera shots
+- `js/audio.js`: audio engine, procedural music, sound effects, blow detector
+- `js/confetti.js`: screen-space confetti and hearts for the finale
+- `js/ui.js`, `js/util.js`: overlay helpers, tweens and easing

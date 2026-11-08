@@ -1,6 +1,6 @@
 /* Layout: a full-screen WebGL film with a thin UI overlay; everything is centered and theatrical. */
 :root {
-  --bg: #0b0f2b;
+  --bg: #02030c;
   --ink: #fff6e6;
   --ink-soft: rgba(255, 246, 230, 0.78);
   --gold: #f5c66b;
@@ -15,7 +15,20 @@
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; overflow: hidden; background: var(--bg); color: var(--ink); font-family: var(--body); -webkit-tap-highlight-color: transparent; }
 body { overscroll-behavior: none; touch-action: none; }
-#gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+#world { position: fixed; inset: 0; width: 100%; height: 100%; display: block; background: #02030c; }
+#overlay { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+/* living details inside the SVG world */
+.tw { animation: tw var(--d) ease-in-out var(--dl) infinite; opacity: var(--o); }
+@keyframes tw { 0%, 100% { opacity: var(--o); } 50% { opacity: calc(var(--o) * 0.2); } }
+.ws { animation: ws var(--d) ease-in-out var(--dl) infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes ws { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(0.8); opacity: 0.72; } }
+.glint { animation: glint var(--d) ease-in-out var(--dl) infinite; opacity: 0; }
+@keyframes glint { 0%, 100% { opacity: 0; } 50% { opacity: var(--o); } }
+.wave { animation: drift var(--d) ease-in-out var(--dl) infinite alternate; }
+@keyframes drift { from { transform: translateX(calc(var(--dx) * -1)); } to { transform: translateX(var(--dx)); } }
+.lighthouse { animation: lh 4s ease-in-out infinite; }
+@keyframes lh { 0%, 60%, 100% { opacity: 0.15; } 75% { opacity: 1; } }
 #ui { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
 #vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 55%, rgba(5, 4, 20, 0.55) 100%); }
 
@@ -28,7 +41,7 @@ body { overscroll-behavior: none; touch-action: none; }
 .layer.show { opacity: 1; transform: none; pointer-events: auto; }
 .layer.bottom { justify-content: flex-end; padding-bottom: calc(14vh + env(safe-area-inset-bottom, 0px)); }
 .layer h1 { font-family: var(--display); font-weight: 600; font-size: clamp(2rem, 7.5vw, 3.6rem); line-height: 1.08; margin: 0; text-wrap: balance; text-shadow: 0 2px 30px rgba(255, 200, 120, 0.35); }
-.layer p { margin: 0; max-width: 34ch; text-wrap: balance; }
+.layer p { margin: 0; max-width: 34ch; text-wrap: balance; text-shadow: 0 1px 12px rgba(0,0,0,.7); }
 .eyebrow { font-size: 0.78rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); }
 .hint { color: var(--ink-soft); font-size: 0.95rem; }
 .big { font-family: var(--display); font-style: italic; font-size: clamp(1.4rem, 5.5vw, 2.1rem); text-shadow: 0 2px 24px rgba(0,0,0,0.5); }
@@ -58,10 +71,6 @@ body { overscroll-behavior: none; touch-action: none; }
 .center-text.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 #title { top: 30%; font-size: clamp(1.9rem, 8vw, 3.2rem); font-style: normal; font-weight: 600; }
 
-#subtitle { position: absolute; left: 0; right: 0; bottom: calc(7vh + env(safe-area-inset-bottom, 0px)); display: flex; justify-content: center; padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); pointer-events: none; }
-#subtitle span { display: inline-block; max-width: 36ch; padding: 10px 18px; border-radius: 14px; background: rgba(8, 6, 30, 0.55); backdrop-filter: blur(6px); font-size: clamp(1rem, 3.9vw, 1.25rem); line-height: 1.4; font-weight: 600; color: var(--ink); text-shadow: 0 1px 8px rgba(0,0,0,.6); opacity: 0; transform: translateY(8px); transition: opacity 0.5s ease, transform 0.5s ease; }
-#subtitle.show span { opacity: 1; transform: none; }
-
 #wave { width: min(320px, 80vw); height: 64px; opacity: 0.9; }
 .ring { position: relative; width: 92px; height: 92px; }
 .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
@@ -70,7 +79,7 @@ body { overscroll-behavior: none; touch-action: none; }
 .ring span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
 #listenText { font-weight: 600; font-size: 1.05rem; color: var(--ink); text-shadow: 0 1px 10px rgba(0,0,0,.7); }
 
-#final { justify-content: center; gap: 12px; background: radial-gradient(ellipse at 50% 40%, rgba(20, 14, 60, 0.25), rgba(5, 4, 20, 0.6)); }
+#final { justify-content: center; gap: 12px; background: radial-gradient(ellipse at 50% 45%, rgba(8, 8, 30, 0.55), rgba(3, 3, 14, 0.25) 75%); }
 #final h1 { background: linear-gradient(180deg, #fff3cf, #f5c66b 60%, #ffb3d1); -webkit-background-clip: text; background-clip: text; color: transparent; animation: glow 2.6s ease-in-out infinite alternate; }
 @keyframes glow { from { filter: drop-shadow(0 0 10px rgba(245,198,107,.35)); } to { filter: drop-shadow(0 0 28px rgba(255,179,209,.7)); } }
 #final .msg { font-family: var(--display); font-size: clamp(1.05rem, 4.2vw, 1.45rem); line-height: 1.4; color: var(--ink); max-width: 38ch; opacity: 0; transform: translateY(10px); transition: opacity 1.2s ease, transform 1.2s ease; }
@@ -85,8 +94,5 @@ body { overscroll-behavior: none; touch-action: none; }
 .loader span:nth-child(3) { animation-delay: 0.4s; background: var(--lilac); box-shadow: 0 0 12px var(--lilac); }
 @keyframes bob { 0%, 100% { transform: translateY(0); opacity: .6; } 50% { transform: translateY(-10px); opacity: 1; } }
 
-#nogl { background: radial-gradient(ellipse at top, #2a1d5e, var(--bg) 70%); }
-#nogl .msg { font-family: var(--display); font-size: 1.25rem; line-height: 1.45; }
-
-@media (prefers-reduced-motion: reduce) { .btn-mic .pulse, #final h1, .loader span { animation: none; } }
-@media (max-height: 560px) { .layer.bottom { padding-bottom: calc(6vh + env(safe-area-inset-bottom, 0px)); } #subtitle { bottom: calc(3vh + env(safe-area-inset-bottom, 0px)); } }
+@media (prefers-reduced-motion: reduce) { .btn-mic .pulse, #final h1, .loader span, .wave, .ws { animation: none; } }
+@media (max-height: 560px) { .layer.bottom { padding-bottom: calc(6vh + env(safe-area-inset-bottom, 0px)); } }

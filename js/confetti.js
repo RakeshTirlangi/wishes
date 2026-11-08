@@ -1,43 +1,41 @@
-import * as THREE from 'three';
-import { isMobile, rand, pick } from './util.js';
-import { Particles, confettiAtlas } from './sprites.js';
+// Screen-space SVG confetti and floating hearts for the finale.
+import { rand, pick, isMobile } from './util.js';
+import { el } from './scene.js';
 
-const COLORS = [[1, 0.78, 0.42], [1, 0.95, 0.75], [1, 0.62, 0.78], [0.79, 0.72, 1], [0.62, 0.9, 1], [1, 1, 1]];
-const HEART = [[1, 0.45, 0.6], [1, 0.3, 0.45], [1, 0.7, 0.82]];
+const COLORS = ['#ffd27a', '#fff1c8', '#ff9cc2', '#c9b8ff', '#9fdcff', '#ffffff'];
+const HEARTS = ['#ff6f9c', '#ff4f7f', '#ffb3cc'];
+const heart = 'M0,9 C-16,-2 -8,-15 0,-5 C8,-15 16,-2 0,9 Z';
 
 export class Confetti {
-  constructor(world) {
-    this.world = world;
-    this.sys = new Particles(isMobile ? 420 : 700, confettiAtlas(64), { atlas: [2, 2], gravity: -1.6, drag: 0.992, swayAmp: 1.4, fade: 'out' });
-    this.hearts = new Particles(isMobile ? 90 : 140, confettiAtlas(64), { atlas: [2, 2], gravity: 0.25, drag: 0.995, swayAmp: 1.2, fade: 'inout' });
-    this.sys.mesh.renderOrder = 8; this.hearts.mesh.renderOrder = 8;
-    world.add(this.sys.mesh, this.hearts.mesh);
-    this.active = false;
-    this._f = new THREE.Vector3(); this._r = new THREE.Vector3(); this._u = new THREE.Vector3(); this._p = new THREE.Vector3();
+  constructor(svg) {
+    this.svg = svg; this.items = []; this.active = false;
+    const n = isMobile ? 90 : 140;
+    for (let i = 0; i < n; i++) {
+      const kind = i % 4 === 0 ? 'heart' : i % 3 === 0 ? 'dot' : 'rect';
+      const e = kind === 'heart' ? el('path', { d: heart }, svg) : kind === 'dot' ? el('circle', { r: 4 }, svg) : el('rect', { x: -3, y: -6, width: 6, height: 12, rx: 1.5 }, svg);
+      e.setAttribute('opacity', 0);
+      this.items.push({ e, kind, on: false });
+    }
+    this.resize();
   }
+  resize() { this.w = window.innerWidth; this.h = window.innerHeight; this.svg.setAttribute('viewBox', `0 0 ${this.w} ${this.h}`); }
   start() { this.active = true; }
-  stop() { this.active = false; }
-  /* Spawn relative to the camera so the celebration follows the shot. */
-  spawnPoint(dist, rx, ry) {
-    const cam = this.world.camera;
-    cam.getWorldDirection(this._f);
-    this._r.crossVectors(this._f, cam.up).normalize();
-    this._u.crossVectors(this._r, this._f).normalize();
-    return this._p.copy(cam.position).addScaledVector(this._f, dist).addScaledVector(this._r, rx).addScaledVector(this._u, ry);
+  stop() { this.active = false; for (const it of this.items) { it.on = false; it.e.setAttribute('opacity', 0); } }
+  spawn(it) {
+    it.on = true; it.life = 0; it.ttl = rand(6, 10); it.rot = rand(360); it.vr = rand(-180, 180); it.seed = rand(10);
+    if (it.kind === 'heart') { it.x = rand(this.w); it.y = this.h + 20; it.vy = -rand(40, 80); it.s = rand(0.7, 1.5); it.e.setAttribute('fill', pick(HEARTS)); it.vr = rand(-20, 20); it.rot = rand(-15, 15); }
+    else { it.x = rand(this.w); it.y = -20; it.vy = rand(50, 110); it.s = rand(0.7, 1.3); it.e.setAttribute('fill', pick(COLORS)); }
   }
   update(dt, t) {
-    if (this.active) {
-      for (let q = 0; q < 4; q++) if (this.sys.count < this.sys.max) {
-        const d = rand(8, 24), p = this.spawnPoint(d, rand(-1, 1) * d * 0.9, d * 0.6 + rand(0, 4));
-        const c = pick(COLORS);
-        this.sys.emit(p.x, p.y, p.z, { vx: rand(-0.8, 0.8), vy: rand(-0.5, 0.3), vz: rand(-0.5, 0.5), ttl: rand(5, 8), size0: rand(0.12, 0.3) * d * 0.08, size1: rand(0.1, 0.25) * d * 0.08, alpha: 1, frame: pick([1, 1, 2, 3]), spin: rand(-5, 5), rot: rand(6), r: c[0], g: c[1], b: c[2], sway: rand(10) });
-      }
-      if (this.hearts.count < this.hearts.max && Math.random() < 0.5) {
-        const d = rand(8, 20), p = this.spawnPoint(d, rand(-1, 1) * d * 0.8, -d * 0.55);
-        const c = pick(HEART);
-        this.hearts.emit(p.x, p.y, p.z, { vx: rand(-0.3, 0.3), vy: rand(0.8, 1.6), vz: 0, ttl: rand(5, 8), size0: rand(0.3, 0.7) * d * 0.08, size1: rand(0.4, 0.9) * d * 0.08, alpha: 0.95, frame: 0, spin: rand(-0.6, 0.6), rot: rand(-0.3, 0.3), r: c[0], g: c[1], b: c[2], sway: rand(10) });
-      }
+    for (const it of this.items) {
+      if (!it.on) { if (this.active && Math.random() < 0.02) this.spawn(it); continue; }
+      it.life += dt;
+      if (it.life > it.ttl || it.y < -40 || it.y > this.h + 40) { it.on = false; it.e.setAttribute('opacity', 0); continue; }
+      it.y += it.vy * dt; it.x += Math.sin(t * 1.5 + it.seed) * 30 * dt; it.rot += it.vr * dt;
+      const sx = it.kind === 'rect' ? Math.cos(t * 4 + it.seed) : 1;
+      const a = Math.min(1, it.life * 2) * Math.min(1, (it.ttl - it.life) * 1.5) * (it.kind === 'heart' ? 0.8 : 1);
+      it.e.setAttribute('transform', `translate(${it.x.toFixed(1)},${it.y.toFixed(1)}) rotate(${it.rot.toFixed(1)}) scale(${(it.s * sx).toFixed(2)},${it.s.toFixed(2)})`);
+      it.e.setAttribute('opacity', a.toFixed(2));
     }
-    this.sys.update(dt, t); this.hearts.update(dt, t);
   }
 }

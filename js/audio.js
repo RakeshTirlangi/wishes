@@ -1,4 +1,4 @@
-import { clamp, params, pacing, wait, rand, pick } from './util.js';
+import { clamp, params, rand, pick } from './util.js';
 
 const midiHz = (m) => 440 * Math.pow(2, (m - 69) / 12);
 
@@ -109,6 +109,16 @@ export class AudioEngine {
     });
   }
 
+  pop() {
+    if (!this.ready) return;
+    const ctx = this.ctx, t = this.now;
+    const n = this.noiseSource(t, 0.5);
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900;
+    const g = ctx.createGain(); this.env(g, t, 0.004, 0.35, 0.45);
+    n.connect(lp).connect(g).connect(this.sfxBus); g.connect(this.reverb);
+    for (let i = 0; i < 6; i++) this.bell(pick([86, 88, 90, 93, 95, 98]), t + 0.12 + i * rand(0.04, 0.1), 0.12, 0.7, this.sfxBus);
+  }
+
   thump() {
     if (!this.ready) return;
     const ctx = this.ctx, t = this.now;
@@ -166,65 +176,6 @@ class Music {
         o.connect(lp).connect(g).connect(this.padOut); o.start(t); o.stop(t + dur + 0.1);
       }
     }
-  }
-}
-
-/* --------------------------------------------------------------- narrator */
-const VOICE_PREFS = [/Samantha/i, /Karen/i, /Moira/i, /Tessa/i, /Martha/i, /Google UK English Female/i, /Google US English/i, /Microsoft (Aria|Jenny|Sonia|Libby|Zira|Hazel|Emma|Ava)/i, /Female/i, /Woman/i];
-export class Narrator {
-  constructor(engine, ui, moon) {
-    this.engine = engine; this.ui = ui; this.moon = moon;
-    this.synth = 'speechSynthesis' in window ? window.speechSynthesis : null;
-    this.voice = null; this.muted = false; this.endAt = 0;
-    this.rate = Number(params.get('rate')) || 0.9;
-    this.pitch = Number(params.get('pitch')) || 1.1;
-  }
-  async init() {
-    if (!this.synth) return;
-    let voices = this.synth.getVoices();
-    if (!voices.length) {
-      await new Promise((res) => { const to = setTimeout(res, 1800); this.synth.addEventListener('voiceschanged', () => { clearTimeout(to); res(); }, { once: true }); });
-      voices = this.synth.getVoices();
-    }
-    this.voice = this.pick(voices);
-  }
-  pick(voices) {
-    if (!voices.length) return null;
-    const en = voices.filter((v) => /^en/i.test(v.lang));
-    for (const p of VOICE_PREFS) { const v = en.find((v) => p.test(v.name)); if (v) return v; }
-    return en.find((v) => v.default) || en[0] || voices[0];
-  }
-  estimate(text) { return 0.9 + (text.length * 0.07) / this.rate; }
-  setMuted(m) { this.muted = m; if (m && this.synth) { try { this.synth.cancel(); } catch (e) {} } }
-
-  say(text, { subtitle = text, pause = 550 } = {}) {
-    return new Promise((resolve) => {
-      this.ui.subtitle(subtitle);
-      this.moon.talking = true;
-      this.engine.duck(true);
-      const est = this.estimate(text) / pacing.speed;
-      this.endAt = performance.now() + est * 1000;
-      let done = false;
-      const finish = async () => {
-        if (done) return; done = true;
-        const remaining = this.endAt - performance.now();
-        if (remaining > 150) await wait(remaining * pacing.speed);
-        this.moon.talking = false;
-        this.ui.subtitle(null);
-        this.engine.duck(false);
-        await wait(pause);
-        resolve();
-      };
-      if (!this.synth || !this.voice || pacing.speed > 1 || this.muted) { setTimeout(finish, est * 1000); return; }
-      try { this.synth.cancel(); } catch (e) {}
-      const u = new SpeechSynthesisUtterance(text);
-      u.voice = this.voice; u.lang = this.voice.lang; u.rate = this.rate; u.pitch = this.pitch; u.volume = 1;
-      const timeout = setTimeout(finish, (est * 1.9 + 2.5) * 1000);
-      u.onend = () => { clearTimeout(timeout); finish(); };
-      u.onerror = () => { clearTimeout(timeout); finish(); };
-      this.current = u; // keep a reference so Chrome does not garbage-collect the utterance
-      setTimeout(() => { try { this.synth.speak(u); } catch (e) { finish(); } }, 80);
-    });
   }
 }
 

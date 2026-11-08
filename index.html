@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#0b0f2b">
+<meta name="theme-color" content="#02030c">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>A Universe For You</title>
-<meta name="description" content="Open me on your phone, put on your earphones, and make a wish. The moon is waiting.">
+<meta name="description" content="Open me on your phone, turn your sound on, and make a wish under the moon.">
 <meta property="og:title" content="A little universe is waiting for you 🌙✨">
-<meta property="og:description" content="Open me on your phone, put on your earphones, and make a wish.">
+<meta property="og:description" content="Open me on your phone, turn your sound on, and make a wish under the moon.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://rakeshtirlangi.github.io/wishes/preview.jpg">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌙%3C/text%3E%3C/svg%3E">
@@ -18,25 +18,23 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
-<script type="importmap">
-{ "imports": { "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.170.0/three.module.min.js" } }
-</script>
 </head>
 <body>
-<canvas id="gl" aria-hidden="true"></canvas>
+<svg id="world" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" viewBox="0 -1070 1500 1300" aria-hidden="true"></svg>
+<svg id="overlay" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
 
 <div id="ui">
   <div id="vignette"></div>
 
   <div id="loading" class="layer show">
     <div class="loader"><span></span><span></span><span></span></div>
-    <p>The universe is waking up…</p>
+    <p>The night sky is waking up…</p>
   </div>
 
   <div id="start" class="layer">
     <p class="eyebrow">For someone very special</p>
     <h1>A little universe<br>is waiting for you</h1>
-    <p class="hint">Put on your earphones and turn your sound on 🎧</p>
+    <p class="hint">Turn your sound on 🎧</p>
     <button id="begin" class="btn btn-gold" type="button">✨ Open the night sky</button>
   </div>
 
@@ -44,6 +42,7 @@
   <div id="message" class="center-text"></div>
 
   <div id="wish" class="layer bottom">
+    <p class="hint">Close your eyes and make your most beautiful wish.</p>
     <p class="big">Make a wish. The universe is listening. ✨</p>
     <button id="mic" class="btn btn-mic" type="button"><span class="pulse"></span>🎤 I'm ready to make a wish</button>
   </div>
@@ -54,8 +53,6 @@
     <p id="listenText">Take a deep breath and blow towards your phone's microphone.</p>
     <button id="fallback" class="btn btn-ghost" type="button" hidden>Having trouble blowing out the candles? Tap here to make your wish come true.</button>
   </div>
-
-  <div id="subtitle"><span></span></div>
 
   <div id="final" class="layer">
     <h1>HAPPIEST BIRTHDAY,<br>BEAUTIFUL! ❤️</h1>
@@ -68,12 +65,6 @@
   </div>
 
   <button id="mute" class="icon-btn" type="button" aria-label="Mute">🔊</button>
-
-  <div id="nogl" class="layer">
-    <h1>HAPPIEST BIRTHDAY, BEAUTIFUL! ❤️</h1>
-    <p class="msg">Your phone can't draw the night sky, but the moon still sent this:</p>
-    <p class="msg">May every little wish in your heart find its way to you. You deserve all the magic in this universe. Keep smiling, keep dreaming, and never stop shining. ❤️</p>
-  </div>
 </div>
 
 <script type="module" src="js/main.js"></script>
